@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/daniela-onc/tinyapp/issues"
   },
-  "homepage": "https://github.com/daniela-onc/tinyapp#readme"
+  "homepage": "https://github.com/daniela-onc/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
