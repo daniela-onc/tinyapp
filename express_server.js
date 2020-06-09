@@ -18,6 +18,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.get("/", (req, res) => {
   res.send("Hello!");
+ 
 });
 
 app.get("/urls.json", (req, res) => {
@@ -35,8 +36,19 @@ app.get("/urls", (req, res) => {
 
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  //console.log(req.body);  // Log the POST request body to the console
+  //res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  let randShortURL = generateRandomString();
+  urlDatabase[randShortURL] = req.body.longURL;
+  res.redirect(`/urls/${randShortURL}`);
+});
+
+app.post("urls/:shortURL/delete", (req, res) => { //http://localhost:8080/urls/b2xVn2/delete
+  let shortURLName = req.params.shortURL;
+  console.log("ShortURLName", shortURLName)
+  console.log('urlDatabase', urlDatabase)
+  delete urlDatabase[shortURLName];
+  res.redirect(`/urls`);
 });
 
 //generate a Random ShortURL
@@ -50,7 +62,7 @@ return randomNumber;
 }
 
 
-
+//need to be on top of route definition
 app.get("/urls/new", (req, res) => { 
   res.render("urls_new"); //GET Route to Show the Form to the User
 });
@@ -63,7 +75,7 @@ app.get("/urls/:shortURL", (req, res) => { //route definition
 
 
 app.get("/u/:shortURL", (req, res) => {//shorter version for our redirect link: http://localhost:8080?u/shortURL
-  let shortURLName = req.params.shortURL; 
+  let shortURLName = req.params.shortURL; // http://localhost:8080/u/b2xVn2
   let longURL = urlDatabase[shortURLName];
   res.redirect(longURL);
 });
