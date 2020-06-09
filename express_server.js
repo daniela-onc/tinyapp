@@ -62,6 +62,13 @@ app.get("/urls/:shortURL", (req, res) => { //route definition
 });
 
 
+app.get("/u/:shortURL", (req, res) => {//shorter version for our redirect link: http://localhost:8080?u/shortURL
+  let shortURLName = req.params.shortURL; 
+  let longURL = urlDatabase[shortURLName];
+  res.redirect(longURL);
+});
+
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
