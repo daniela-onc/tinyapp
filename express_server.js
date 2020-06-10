@@ -43,13 +43,30 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${randShortURL}`);
 });
 
+//deleate short URL
 app.post("urls/:shortURL/delete", (req, res) => { //http://localhost:8080/urls/b2xVn2/delete
   let shortURLName = req.params.shortURL;
-  console.log("ShortURLName", shortURLName)
-  console.log('urlDatabase', urlDatabase)
+  //console.log("ShortURLName", shortURLName)
+  //console.log('urlDatabase', urlDatabase)
   delete urlDatabase[shortURLName];
   res.redirect(`/urls`);
 });
+
+// display the form from urls_show
+app.get("/urls/:id", (req, res) => {  
+  let longURL = urlDatabase[req.params.id];
+  res.render('urls_show', {shortURL: req.params.id, longURL: longURL});
+});
+
+// update URL
+app.post('urls/:id', (req, res) => {
+  let change = req.body.longURL;
+  urlDatabase[req.params.id] = change;
+  res.redirect('/urls');
+});
+
+
+
 
 //generate a Random ShortURL
 function generateRandomString() {
