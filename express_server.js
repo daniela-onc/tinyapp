@@ -1,8 +1,10 @@
 const express = require("express");
+const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080; // default port 8080
 
-app.set("view engine", "ejs");
+app.set("view engine", "ejs"); //asking app to use EJS as its template engine
+app.use(cookieParser()); //asking app to use cookieParser parameter
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -30,10 +32,16 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
+  //let templateVars = { urls: urlDatabase };
+  let templateVars = {username: req.cookies["username"], urls: urlDatabase};
   res.render("urls_index", templateVars);
 });
 
+
+app.get("/urls/new", (req, res) => {
+  let templateVars = {username: req.cookies["username"]} //http://localhost8080/urls/new
+  res.render("urls_new", templateVars)                   //GET Route to show the Form to the user
+});
 
 app.post("/urls", (req, res) => {
   //console.log(req.body);  // Log the POST request body to the console
@@ -86,7 +94,8 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => { //route definition
   let shortURLName = req.params.shortURL;
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[shortURLName]}; /* What goes here?*/
+  //let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[shortURLName]}; 
+  let templateVars = {username: req.cookies["username"], shortURL: req.params.shortURL, longURL: urlDatabase[shortURLName]};
   res.render("urls_show", templateVars);
 });
 
@@ -96,6 +105,20 @@ app.get("/u/:shortURL", (req, res) => {//shorter version for our redirect link: 
   let longURL = urlDatabase[shortURLName];
   res.redirect(longURL);
 });
+
+
+app.post("/logout", (req, res) => { //Logout
+  console.log('logout');
+  res.clearCookie("username");
+  res.redirect("/urls");
+});
+
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username);
+  res.redirect("/urls");
+});
+
+
 
 
 app.listen(PORT, () => {
