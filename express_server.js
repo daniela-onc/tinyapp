@@ -1,13 +1,22 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser');
+   //const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session')  
+const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080; // default port 8080
-app.use(cookieParser());
-
+ 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+  //app.use(cookieParser());
 app.set("view engine", "ejs"); //asking app to use EJS as its template engine
+
+// initialize the cookie session with some random keys
+// and setting it to expire in 24 hours
+app.use(cookieSession({
+  name: 'session',
+  keys: ['some', 'random', 'secret', 'words'],
+  maxAge: 1000 * 60 * 60 * 24 // 24 hours in miliseconds
+}));
 
 /*const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -54,16 +63,19 @@ function findUserByEmail(email) {
 };
 
 function urlsForUser(id) {
-  let output = {};
+     //let output = {};
+  let URLsUser = {};
   for(let shortURL in urlDatabase) {
     if(urlDatabase[shortURL].userID === id) {
-      output[shortURL] = urlDatabase[shortURL];
+      //output[shortURL] = urlDatabase[shortURL];
+      URLsUser[shortURL] = urlDatabase[shortURL];
     }
   }
-  return output;
+       //return output;
+  return URLsUser;
 }
 
-
+/*
 app.get("/", (req, res) => {
   res.redirect('/urls');
 });
@@ -71,6 +83,7 @@ app.get("/", (req, res) => {
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
+*/
 
 // ============
 // === URLS ===
@@ -93,7 +106,7 @@ app.get("/urls", (req, res) => {
 });
 */
 app.get("/urls", (req, res) => {
-  let userId = req.cookies["user_ID"];
+  let userId = req.session["user_ID"];
   let loggedInUser = users[userId];
   let email;
   if(loggedInUser) {
@@ -120,7 +133,7 @@ app.post("/urls", (req, res) => {
      //console.log("urlDatabase before is: ",urlDatabase);
   urlDatabase[randShortURL] = {
     longURL: req.body.longURL,
-    userID: req.cookies["user_ID"]
+    userID: req.session["user_ID"]
   };
   console.log(urlDatabase);
      //console.log("urlDatabase after is: ",urlDatabase);
@@ -130,10 +143,9 @@ app.post("/urls", (req, res) => {
 
 
 app.get("/urls/new", (req, res) => {
-  const userId = req.cookies.user_ID;
+  const userId = req.session.user_ID;
   const loggedInUser = users[userId];
  
-
   //const templateVars = { email: loggedInUser.email };
   //res.render("urls_new", templateVars);
   if (userId) {
@@ -145,9 +157,10 @@ app.get("/urls/new", (req, res) => {
   }                   
 });
 
+
 app.get("/urls/:shortURL", (req, res) => { //route definition
   const shortURLName = req.params.shortURL;
-  const userId = req.cookies.user_ID;
+  const userId = req.session.user_ID;
   const loggedInUser = users[userId];
 console.log(users);
   const templateVars = {
@@ -161,7 +174,7 @@ console.log(users);
 
 //deleate short URL
 //http://localhost:8080/urls/b2xVn2/delete
-app.post("urls/:shortURL/delete", (req, res) => {
+app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURLName = req.params.shortURL;
   delete urlDatabase[shortURLName];
   res.redirect(`/urls`);
@@ -177,10 +190,12 @@ app.get("/urls/:id", (req, res) => {
 });
 
 // update URL
-app.post('urls/:id', (req, res) => {
+app.post('/urls/:id', (req, res) => {
   const change = req.body.longURL;
-  urlDatabase[req.params.id] = change;
+  urlDatabase[req.params.id].longURL = change;
   res.redirect('/urls');
+  console.log('change', change);
+  console.log(req.params.id);
 });
 
 
@@ -221,7 +236,7 @@ app.post("/register", (req, res) => {
       email: email,
       password: password
     }
-    res.cookie("user_ID", user_ID);
+    req.session.user_ID = user_ID;
     res.redirect("/urls");
     } else {
       res.statusCode = 400;
@@ -238,11 +253,12 @@ app.get('/login', (req, res) => {
   
 })
 
+
 app.post("/login", (req, res) => {
 
 const user = findUserByEmail(req.body.email);
 if(user && user.password === req.body.password) {
-  res.cookie("user_ID", user.id);
+  req.session.user_ID = user.id;
   res.redirect("/urls");
 } else {
   res.status(401).send("Failed to login");
@@ -253,7 +269,7 @@ if(user && user.password === req.body.password) {
 
 //Logout
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_ID");
+  delete req.session.user_ID;
   res.redirect("/urls");
 });
 
