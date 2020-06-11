@@ -9,18 +9,23 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.set("view engine", "ejs"); //asking app to use EJS as its template engine
 
-const urlDatabase = {
+/*const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-  
+*/
+const urlDatabase = {
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+};
+
 //create user Object
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
+  "aJ48lW": {
+    id: "aJ48lW",
     email: "user@example.com",
     //password: "purple-monkey-dinosaur"
-    pasword: 'abc'
+    password: 'abc'
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -48,6 +53,16 @@ function findUserByEmail(email) {
   return false;
 };
 
+function urlsForUser(id) {
+  let output = {};
+  for(let shortURL in urlDatabase) {
+    if(urlDatabase[shortURL].userID === id) {
+      output[shortURL] = urlDatabase[shortURL];
+    }
+  }
+  return output;
+}
+
 
 app.get("/", (req, res) => {
   res.redirect('/urls');
@@ -60,6 +75,8 @@ app.get("/urls.json", (req, res) => {
 // ============
 // === URLS ===
 // ============
+
+/*
 app.get("/urls", (req, res) => {
   const userId = req.cookies.user_ID;
   if (!userId) {
@@ -74,13 +91,41 @@ app.get("/urls", (req, res) => {
     res.render("urls_index", templateVars);
   }
 });
+*/
+app.get("/urls", (req, res) => {
+  let userId = req.cookies["user_ID"];
+  let loggedInUser = users[userId];
+  let email;
+  if(loggedInUser) {
+    email = loggedInUser.email;
+  }
+  if(userId) {
+    let templateVars = {
+      user: loggedInUser,
+      urls: urlsForUser(userId),
+      'email': email
+    };
+    res.render("urls_index", templateVars);
+  } else {
+    res.redirect("/login");
+  }
+});
+
 
 app.post("/urls", (req, res) => {
   //console.log(req.body);  // Log the POST request body to the console
   //res.send("Ok");         // Respond with 'Ok' (we will replace this)
   const randShortURL = generateRandomString();
-  urlDatabase[randShortURL] = req.body.longURL;
-  res.redirect(`/urls/${randShortURL}`);
+  //urlDatabase[randShortURL] = req.body.longURL;
+     //console.log("urlDatabase before is: ",urlDatabase);
+  urlDatabase[randShortURL] = {
+    longURL: req.body.longURL,
+    userID: req.cookies["user_ID"]
+  };
+  console.log(urlDatabase);
+     //console.log("urlDatabase after is: ",urlDatabase);
+     //res.redirect(`/urls/${randShortURL}`);
+     res.redirect("/urls");
 });
 
 
@@ -104,7 +149,7 @@ app.get("/urls/:shortURL", (req, res) => { //route definition
   const shortURLName = req.params.shortURL;
   const userId = req.cookies.user_ID;
   const loggedInUser = users[userId];
-
+console.log(users);
   const templateVars = {
     email: loggedInUser.email,
     shortURL: req.params.shortURL,
@@ -203,8 +248,7 @@ if(user && user.password === req.body.password) {
   res.status(401).send("Failed to login");
   
 }
-  
-  
+ 
 });
 
 //Logout
