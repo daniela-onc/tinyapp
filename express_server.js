@@ -38,13 +38,13 @@ function generateRandomString() {
   return randomNumber;
 }
 
-function findUserByEmail(email, users) {
+function findUserByEmail(email) {
   for (let user_ID in users) {
     if (email === users[user_ID].email) {
-      return false;
+      return users[user_ID];
     }
   }
-  return true;
+  return false;
 };
 
 
@@ -65,7 +65,6 @@ app.get("/urls", (req, res) => {
     res.redirect('/login');
   } else {
     const loggedInUser = users[userId];
-
     const templateVars = {
       email: loggedInUser.email,
       urls: urlDatabase
@@ -162,7 +161,7 @@ app.post("/register", (req, res) => {
     res.statusCode = 400;
     res.end("Please provide email and password!");
   } else {
-    if (findUserByEmail(email, users)) {
+    if (!findUserByEmail(email)) {
     const user_ID = generateRandomString();
     users[user_ID] = {
       id: user_ID,
@@ -178,19 +177,26 @@ app.post("/register", (req, res) => {
     }
   }
 });
- 
-
-    
+   
   
-
 
 app.get('/login', (req, res) => {
   res.render("login", {});
+  
 })
 
 app.post("/login", (req, res) => {
-  res.cookie("user_ID", req.body.username);
+
+const user = findUserByEmail(req.body.email);
+if(user && user.password === req.body.password) {
+  res.cookie("user_ID", user.id);
   res.redirect("/urls");
+} else {
+  res.status(401).send("Failed to login");
+  
+}
+  
+  
 });
 
 //Logout
@@ -205,25 +211,3 @@ app.listen(PORT, () => {
 
 
 
-/*app.post("/register", (req, res) => {
-  let email = req.body.email;
-  let password = req.body.password;
-
-  if (!email || !password) {
-    res.statusCode = 400;
-    res.end("Unknown");
-  } else if (findUserByEmail(email, users) === true) {
-    let user_ID = generateRandomString();
-    users[user_ID] = {id: user_ID,
-                      email: email,
-                      password: password}
-
-    cookieParser.JSONCookie(user_ID)
-    res.cookie("user_ID", user_ID);
-    res.redirect("/urls");
-  } else {
-    res.statusCode = 400;
-    res.end("Unknown");
-  }
-});
-*/
