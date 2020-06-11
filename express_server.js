@@ -19,7 +19,8 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    //password: "purple-monkey-dinosaur"
+    pasword: 'abc'
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -40,8 +41,8 @@ function generateRandomString() {
 
 function findUserByEmail(email) {
   for (let user_ID in users) {
-    if (email === users[user_ID].email) {
-      return users[user_ID];
+      if (email === users[user_ID].email) {
+          return users[user_ID];
     }
   }
   return false;
@@ -86,10 +87,17 @@ app.post("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const userId = req.cookies.user_ID;
   const loggedInUser = users[userId];
+ 
 
-  const templateVars = { email: loggedInUser.email };
-
-  res.render("urls_new", templateVars);                   //GET Route to show the Form to the user
+  //const templateVars = { email: loggedInUser.email };
+  //res.render("urls_new", templateVars);
+  if (userId) {
+    let templateVars = {user: loggedInUser, urls: urlDatabase, email: loggedInUser.email}
+    res.render('urls_new', templateVars);
+  } else {
+    res.redirect('/login');
+  
+  }                   
 });
 
 app.get("/urls/:shortURL", (req, res) => { //route definition
