@@ -89,9 +89,10 @@ app.get("/urls.json", (req, res) => {
 // === URLS ===
 // ============
 
+
 /*
 app.get("/urls", (req, res) => {
-  const userId = req.cookies.user_ID;
+  const userId = req.session.user_ID;
   if (!userId) {
     res.redirect('/login');
   } else {
@@ -105,6 +106,7 @@ app.get("/urls", (req, res) => {
   }
 });
 */
+
 app.get("/urls", (req, res) => {
   let userId = req.session["user_ID"];
   let loggedInUser = users[userId];
@@ -224,6 +226,7 @@ app.get("/register", (req, res) => {  //   http://localhost:8080/register
 app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password,10);
   
   if (!email || !password) {
     res.statusCode = 400;
@@ -234,8 +237,8 @@ app.post("/register", (req, res) => {
     users[user_ID] = {
       id: user_ID,
       email: email,
-      password: password
-    }
+      password: hashedPassword}
+    
     req.session.user_ID = user_ID;
     res.redirect("/urls");
     } else {
@@ -255,16 +258,17 @@ app.get('/login', (req, res) => {
 
 
 app.post("/login", (req, res) => {
+const email = req.body.email;
+const password = req.body.password;
 
 const user = findUserByEmail(req.body.email);
-if(user && user.password === req.body.password) {
+//if(user && user.password === req.body.password) {
+  if (user && bcrypt.compareSync(req.body.password, user.password)) {
   req.session.user_ID = user.id;
   res.redirect("/urls");
 } else {
   res.status(401).send("Failed to login");
-  
-}
- 
+} 
 });
 
 //Logout
