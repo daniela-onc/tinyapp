@@ -10,7 +10,7 @@
   "author": "[Daniela Oancea, danielaoancea2009@yahoo.ca]",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "2.0.0",
+    "bcrypt": "5.0.0",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.5",
     "cookie-session": "^1.4.0",
